@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>UTS Quiz — Services Marketing</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0d0d14;--surface:#161622;--surface2:#1e1e2e;
+  --border:#2a2a42;--accent:#7c6aff;--text:#e8e8f4;
+  --muted:#6868a0;--correct:#2dffaa;--wrong:#ff4d6d;--warn:#ffb347;
+}
+html{scroll-behavior:smooth}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
+
+header{padding:36px 20px 24px;text-align:center;border-bottom:1px solid var(--border);background:var(--bg)}
+.badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:3px;text-transform:uppercase;color:var(--accent);border:1px solid var(--accent);padding:5px 14px;border-radius:100px;margin-bottom:14px}
+h1{font-size:clamp(24px,6vw,42px);font-weight:800;background:linear-gradient(135deg,#fff 30%,var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;line-height:1.2}
+.subtitle{color:var(--muted);font-size:13px;margin-bottom:20px}
+.stats{display:flex;justify-content:center;gap:28px;flex-wrap:wrap;margin-bottom:20px}
+.stat-num{font-size:26px;font-weight:800;color:var(--accent);line-height:1}
+.stat-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+
+.filter-wrap{position:sticky;top:0;z-index:50;background:rgba(13,13,20,.97);backdrop-filter:blur(16px);border-bottom:1px solid var(--border)}
+.filter-bar{display:flex;gap:8px;padding:12px 16px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.filter-bar::-webkit-scrollbar{display:none}
+.fbtn{flex-shrink:0;font-size:12px;font-weight:600;padding:8px 16px;border-radius:100px;border:1.5px solid var(--border);background:transparent;color:var(--muted);cursor:pointer;transition:all .2s;font-family:inherit;white-space:nowrap;min-height:36px}
+.fbtn.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+
+main{max-width:680px;margin:0 auto;padding:24px 14px 140px}
+.mod-label{display:flex;align-items:center;gap:10px;margin:32px 0 12px;font-size:10px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--accent)}
+.mod-label::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.card{background:var(--surface);border:1.5px solid var(--border);border-left:4px solid transparent;border-radius:16px;padding:18px 16px;margin-bottom:14px;transition:border-color .25s,border-left-color .25s}
+.card.correct{border-color:rgba(45,255,170,.25);border-left-color:var(--correct)}
+.card.wrong{border-color:rgba(255,77,109,.25);border-left-color:var(--wrong)}
+.q-header{display:flex;gap:10px;margin-bottom:14px;align-items:flex-start}
+.q-num{font-size:10px;font-weight:700;color:var(--muted);background:var(--surface2);padding:4px 8px;border-radius:6px;white-space:nowrap;flex-shrink:0;line-height:1.4}
+.q-text{font-size:14px;font-weight:500;line-height:1.65;color:var(--text)}
+
+.options{display:flex;flex-direction:column;gap:9px}
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:var(--surface2);border:1.5px solid var(--border);border-radius:12px;padding:14px;color:var(--text);font-size:13px;cursor:pointer;transition:all .15s;font-family:inherit;line-height:1.45;min-height:50px}
+.opt:active:not(:disabled){transform:scale(.98)}
+.opt.correct{border-color:var(--correct)!important;background:rgba(45,255,170,.07)!important;color:var(--correct)!important}
+.opt.wrong{border-color:var(--wrong)!important;background:rgba(255,77,109,.07)!important;color:var(--wrong)!important}
+.opt:disabled{cursor:default}
+.opt-lbl{font-weight:800;font-size:12px;min-width:24px;height:24px;border-radius:6px;background:var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;color:var(--muted);transition:all .15s}
+.opt.correct .opt-lbl{background:var(--correct);color:#000}
+.opt.wrong .opt-lbl{background:var(--wrong);color:#fff}
+
+.exp{display:none;margin-top:12px;padding:12px 14px;background:rgba(124,106,255,.06);border:1px solid rgba(124,106,255,.2);border-radius:10px;font-size:13px;color:#a0a0cc;line-height:1.7}
+.exp.show{display:block}
+.exp strong{color:var(--accent)}
+.result{margin-top:10px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px}
+.result.correct{color:var(--correct)}
+.result.wrong{color:var(--wrong)}
+
+/* BOTTOM BAR */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;z-index:100;background:rgba(13,13,20,.97);backdrop-filter:blur(16px);border-top:1px solid var(--border);padding:12px 16px;padding-bottom:calc(12px + env(safe-area-inset-bottom));display:flex;align-items:center;gap:12px}
+.score-pill{display:flex;align-items:center;gap:10px;background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:8px 16px;flex:1;min-width:0}
+.score-text{font-size:18px;font-weight:800;color:var(--accent);line-height:1}
+.score-sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:2px}
+.reset-btn{flex-shrink:0;background:var(--wrong);color:#fff;border:none;border-radius:12px;padding:0 20px;font-size:14px;font-weight:700;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;height:52px;white-space:nowrap;transition:opacity .2s}
+.reset-btn:active{opacity:.8}
+
+/* MODAL */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:flex-end;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:24px 24px 0 0;padding:28px 20px;width:100%;max-width:520px;padding-bottom:calc(28px + env(safe-area-inset-bottom))}
+.modal h2{font-size:20px;font-weight:700;margin-bottom:10px;text-align:center}
+.modal p{font-size:14px;color:var(--muted);text-align:center;margin-bottom:24px;line-height:1.6}
+.modal-btns{display:flex;gap:12px}
+.modal-btns button{flex:1;padding:16px;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;border:none;min-height:54px}
+.btn-cancel{background:var(--surface2);color:var(--text)}
+.btn-confirm{background:var(--wrong);color:#fff}
+.btn-cancel:active{opacity:.8}
+.btn-confirm:active{opacity:.8}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="badge">UTS Prediction Set</div>
+  <h1>Services Marketing</h1>
+  <p class="subtitle">50 predicted questions · All 7 modules</p>
+  <div class="stats">
+    <div><div class="stat-num">50</div><div class="stat-lbl">Questions</div></div>
+    <div><div class="stat-num">7</div><div class="stat-lbl">Modules</div></div>
+    <div><div class="stat-num">90</div><div class="stat-lbl">Minutes</div></div>
+  </div>
+</header>
+
+<div class="filter-wrap">
+  <div class="filter-bar">
+    <button class="fbtn active" onclick="setFilter('all',this)">All 50</button>
+    <button class="fbtn" onclick="setFilter('1',this)">M1 Characteristics</button>
+    <button class="fbtn" onclick="setFilter('2',this)">M2 Consumer</button>
+    <button class="fbtn" onclick="setFilter('3',this)">M3 Positioning</button>
+    <button class="fbtn" onclick="setFilter('4',this)">M4 Products</button>
+    <button class="fbtn" onclick="setFilter('5',this)">M5 Pricing</button>
+    <button class="fbtn" onclick="setFilter('6',this)">M6 Promotion</button>
+    <button class="fbtn" onclick="setFilter('7',this)">M7 Process</button>
+  </div>
+</div>
+
+<main id="quiz"></main>
+
+<div class="bottom-bar">
+  <div class="score-pill">
+    <svg width="40" height="40" viewBox="0 0 40 40" style="flex-shrink:0">
+      <circle cx="20" cy="20" r="15" fill="none" stroke="#2a2a42" stroke-width="4"/>
+      <circle id="ring" cx="20" cy="20" r="15" fill="none" stroke="#7c6aff" stroke-width="4"
+        stroke-linecap="round" stroke-dasharray="94.2" stroke-dashoffset="94.2"
+        style="transform:rotate(-90deg);transform-origin:50% 50%;transition:all .5s"/>
+    </svg>
+    <div>
+      <div class="score-text"><span id="sc">0</span>/<span id="st">0</span> correct</div>
+      <div class="score-sub" id="pct-lbl">Start answering!</div>
+    </div>
+  </div>
+  <button class="reset-btn" onclick="showReset()">↺ Reset</button>
+</div>
+
+<!-- Reset Modal -->
+<div class="modal-bg" id="modal" onclick="bgClick(event)">
+  <div class="modal">
+    <h2>🔄 Reset Quiz?</h2>
+    <p>This will clear all your answers and reset your score back to zero.</p>
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="hideReset()">Cancel</button>
+      <button class="btn-confirm" onclick="confirmReset()">Yes, Reset</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const Q=[
+  {m:"1",q:"Which BEST illustrates 'perishability' in services?",o:["A hotel room can be decorated with different themes","An unsold airline seat on a departed flight cannot be resold","A restaurant meal varies in quality depending on the chef","Customers must be present to receive a haircut"],a:1,e:"Perishability means services cannot be stored. An unsold airline seat on a departed flight is lost revenue forever — the classic textbook example."},
+  {m:"1",q:"A patient cannot tell whether their doctor's diagnosis was accurate even years later. Which attribute is this?",o:["Search attribute","Experience attribute","Credence attribute","Functional attribute"],a:2,e:"Credence attributes cannot be evaluated even after consumption. Medical diagnoses and legal advice are typical examples."},
+  {m:"1",q:"Which service category involves the customer's physical body being directly processed?",o:["Possession processing","Mental stimulus processing","People processing","Information processing"],a:2,e:"People-processing requires the customer to be physically present — haircuts, surgery, airline travel, fitness centers."},
+  {m:"1",q:"Education and counseling are primarily classified as which type of service?",o:["Possession-processing","Mental stimulus processing","People-processing","Information-processing"],a:1,e:"Education and counseling target the customer's mind — they are mental stimulus processing services."},
+  {m:"1",q:"A customer worries surgery may not work and money will be wasted. Which perceived risk is this?",o:["Temporal risk","Social risk","Psychological risk","Functional risk"],a:3,e:"Functional risk = concern that the service won't deliver on its core purpose or performance promise."},
+  {m:"1",q:"Which is NOT a characteristic unique to services compared to physical goods?",o:["Intangibility","Perishability","Durability","Coproduction"],a:2,e:"Durability is a characteristic of physical goods. Services are defined by intangibility, perishability, heterogeneity, and inseparability."},
+  {m:"1",q:"A customer feels nervous using a new banking app because they're unsure if it's secure. What type of risk?",o:["Financial risk","Psychological risk","Sensory risk","Social risk"],a:1,e:"Psychological risk = fears and negative emotions such as anxiety or worry associated with using a service."},
+  {m:"1",q:"Movie theaters are an example of which service categorization?",o:["People-processing — high contact","Mental stimulus processing — intangible experience","Possession-processing — tangible outcome","Information-processing — low contact"],a:1,e:"Movie theaters deliver an intangible experience to the customer's mind — mental stimulus processing. Empty seats = lost revenue forever (perishability)."},
+  {m:"1",q:"Coproduction in services means that:",o:["Two companies jointly produce a service","The customer actively participates in creating the service","The service is produced before the customer arrives","A third-party delivers the service"],a:1,e:"Coproduction means the customer is actively involved in producing the service — this is why customer training and education matter."},
+  {m:"2",q:"A customer researches restaurants online, reads reviews, and compares menus before booking. Which stage is this?",o:["Service encounter stage","Post-encounter stage","Pre-purchase stage","Coproduction stage"],a:2,e:"Pre-purchase stage: need arousal → information search → evaluate alternatives → purchase decision. All happen BEFORE consuming the service."},
+  {m:"2",q:"The 'evoked set' in consumer decision-making refers to:",o:["Emotions triggered after a bad experience","Product attributes used to evaluate alternatives","Brands/products a consumer actively considers","The physical environment that triggers purchases"],a:2,e:"The evoked set is the shortlist of products/brands a consumer considers when making a purchase decision."},
+  {m:"2",q:"Which service encounter model uses a 'front stage' and 'backstage' metaphor?",o:["Moments of Truth model","Servuction System","Zone of Tolerance model","Theater metaphor"],a:3,e:"The theater metaphor describes service delivery as a performance with visible front-stage and hidden backstage elements."},
+  {m:"2",q:"A patient rates hospital service as acceptable, not excellent. According to the zone of tolerance, their experience was:",o:["Above the desired level","Within the zone of tolerance","Below the adequate level","At the point of customer delight"],a:1,e:"Zone of tolerance = range between 'adequate' and 'desired.' Acceptable but not excellent = within the zone — not dissatisfied, not delighted."},
+  {m:"2",q:"When a service performs BETTER than expected, resulting in surprise and joy, this is called:",o:["Positive disconfirmation","Negative disconfirmation","Confirmation","Adequate satisfaction"],a:0,e:"Positive disconfirmation: perceived performance EXCEEDS prior expectations — the pathway to customer delight."},
+  {m:"2",q:"Which model emphasizes managing every customer 'touchpoint'?",o:["Servuction System","High/Low Contact Model","Moments of Truth","Theater Metaphor"],a:2,e:"'Moments of Truth' (Normann) — service quality is determined at EVERY point of interaction between customer and provider."},
+  {m:"2",q:"Low-contact services are best characterized by:",o:["Customers visiting the facility and staying throughout","Little or no physical contact, often via electronic channels","High coproduction requirements","Extensive front-stage encounters"],a:1,e:"Low-contact services = minimal physical interaction, often delivered through technology or electronic channels (e.g., online banking)."},
+  {m:"2",q:"Customer delight has three components. Which is NOT one of them?",o:["Unexpectedly high performance","Positive affect such as pleasure","Low price compared to competitors","Arousal such as surprise"],a:2,e:"Customer delight = unexpectedly high performance + arousal (surprise/excitement) + positive affect (pleasure/joy). Price is NOT part of this framework."},
+  {m:"3",q:"A luxury spa targets health-conscious, mindfulness-oriented professionals. Which segmentation approach is this?",o:["Geographic segmentation","Demographic segmentation only","Psychographic and lifestyle segmentation","Behavioral segmentation based on usage rate"],a:2,e:"Psychographic/lifestyle segmentation groups customers by values, personality, and lifestyle — 'health-conscious, mindfulness-oriented' = psychographic."},
+  {m:"3",q:"A firm offers only tax advisory services exclusively to SMEs. Which focus strategy is this?",o:["Unfocused","Market focused","Fully focused","Service focused"],a:2,e:"Fully focused = narrow service range + narrow market. One service (tax advisory) to one segment (SMEs) = fully focused."},
+  {m:"3",q:"Which focus strategy risks becoming 'jack of all trades, master of none'?",o:["Fully focused","Market focused","Service focused","Unfocused"],a:3,e:"Unfocused strategy = broad markets + wide service range. Biggest risk: lacking distinctive expertise in any area."},
+  {m:"3",q:"Positioning maps are useful because they:",o:["Show internal cost structures of rivals","Visualize how customers perceive competing services on key attributes","Identify which customers to remove","Replace the need for market research"],a:1,e:"Positioning maps plot brands on 2 axes (e.g., price vs. quality), showing competitive positions as perceived by customers."},
+  {m:"3",q:"Determinant attributes in service positioning are best described as:",o:["Most important attributes all customers prioritize equally","Attributes that distinguish competing services AND are important to buyers","Physical features visible before purchase","Attributes identical across all competitors"],a:1,e:"Determinant attributes = where consumers see DIFFERENCES between competitors that drive purchase decisions."},
+  {m:"3",q:"A budget airline adds premium seats to attract business travelers. This is an example of:",o:["Repositioning","Market segmentation exit","Unfocused strategy","Service-focused strategy"],a:0,e:"Repositioning = changing the brand's position in customers' minds by modifying service characteristics or redefining target segments."},
+  {m:"3",q:"Which three analyses must be linked in an effective positioning strategy?",o:["Financial, operational, and marketing","Market, internal corporate, and competitor","Customer, product, and pricing","Segmentation, targeting, and promotion"],a:1,e:"Positioning links: (1) Market Analysis, (2) Internal Corporate Analysis, (3) Competitive Analysis."},
+  {m:"4",q:"In the Flower of Service, 'billing' and 'payment' are classified as:",o:["Enhancing supplementary services","Core service elements","Facilitating supplementary services","Backstage service processes"],a:2,e:"Facilitating services are required for delivery. The four facilitating petals: Information, Order-taking, Billing, Payment."},
+  {m:"4",q:"A hotel's children's play area, concierge, and premium lounge are examples of:",o:["Core product elements","Facilitating supplementary services","Enhancing supplementary services","Service delivery processes"],a:2,e:"Enhancing services add extra value beyond the core. Four enhancing petals: Consultation, Hospitality, Safekeeping, Exceptions."},
+  {m:"4",q:"Which branding approach uses a single dominant brand name across all products?",o:["House of Brands","Endorsed Brand","Sub-brand","Branded House"],a:3,e:"Branded House = one master brand for everything (e.g., Virgin Group — Virgin Atlantic, Virgin Mobile, Virgin Trains)."},
+  {m:"4",q:"British Airways' 'Club World' and 'World Traveller' are examples of which branding approach?",o:["House of Brands","Branded House","Sub-brands","Endorsed Brands"],a:2,e:"Sub-brands: master brand (British Airways) + distinctive product brand (Club World). Parent provides credibility; sub-brand differentiates."},
+  {m:"4",q:"A robot-run hotel with automated check-in and AI concierge is primarily an example of:",o:["A repositioning strategy","A physical evidence change","A service process innovation","A sub-brand launch"],a:2,e:"Robot-run hotels = service process innovation — fundamentally changing HOW the service is delivered by replacing people with automation."},
+  {m:"4",q:"The core product is best defined as:",o:["Supplementary services that enhance experience","The central component supplying the principal benefit customers seek","The physical environment of service delivery","All tangible elements of the service"],a:1,e:"Core product = the fundamental reason the customer buys the service. For a hotel, it's overnight accommodation; everything else is supplementary."},
+  {m:"4",q:"Which is an example of a 'safekeeping' enhancing service?",o:["Providing directions to the service site","Offering a customer loyalty program","Valet parking and baggage handling at a hotel","Sending monthly billing statements"],a:2,e:"Safekeeping = caring for customer's possessions — valet parking, coat rooms, baggage handling, child care, safe deposit boxes."},
+  {m:"4",q:"Capsule hotels primarily target:",o:["Luxury business travelers","Budget-conscious travelers prioritizing price and location","Families seeking spacious accommodation","Corporate groups needing conference facilities"],a:1,e:"Capsule hotels = minimal, efficient accommodation at low cost — targeting price-sensitive travelers like backpackers and transit passengers."},
+  {m:"5",q:"The 'pricing tripod' consists of which three foundations?",o:["Cost-based, demand-based, and market-based","Cost-based, competition-based, and value-based","Fixed, variable, and dynamic pricing","Penetration, skimming, and neutral pricing"],a:1,e:"Pricing Tripod: (1) Cost-based — price floor, (2) Competition-based — market benchmark, (3) Value-based — ceiling from customer's perceived value."},
+  {m:"5",q:"Revenue management is MOST effective when which condition is present?",o:["Low fixed costs and unlimited capacity","Demand is perfectly stable and predictable","Capacity is fixed and inventory is perishable","All customers have identical price sensitivity"],a:2,e:"Revenue management works best with: high fixed costs, fixed capacity, perishable inventory, variable demand, varying price sensitivity."},
+  {m:"5",q:"A firm charges different prices to students vs. non-students for the same service. This is:",o:["Bundling","Rate fencing based on buyer characteristics","Cost-based pricing","Value-based pricing"],a:1,e:"Rate fences by buyer characteristics allow firms to charge different segments different prices for the same service."},
+  {m:"5",q:"Price elasticity refers to:",o:["Flexibility a firm has in setting prices","How much demand changes in response to a price change","Difference between cost and price charged","Customer satisfaction with price paid"],a:1,e:"Price elasticity = sensitivity of demand to price changes. Elastic = large demand change. Inelastic = small demand change."},
+  {m:"5",q:"Which is an ethical concern in service pricing?",o:["Offering discounts to loyal customers","Charging different prices at peak vs. off-peak","Hidden charges customers can't identify in advance","Using bundled packages"],a:2,e:"Hidden charges = major ethical concern. Customers can't calculate the true cost in advance, which feels deceptive and unfair."},
+  {m:"5",q:"Net Value in service pricing is calculated as:",o:["Revenue minus total cost of delivery","Perceived benefits minus all perceived outlays","Price minus competitor prices","Satisfaction score divided by price"],a:1,e:"Net Value = Perceived Benefits MINUS All Perceived Outlays (money + time + mental effort + physical effort)."},
+  {m:"5",q:"Bundling in service pricing refers to:",o:["Charging separately for each component","Offering multiple services at a single combined price","Setting prices based on competitors","Adjusting prices dynamically based on demand"],a:1,e:"Bundling = combining multiple services into one package at a single price (e.g., hotel room + breakfast + spa). Adds perceived value, hides discounts."},
+  {m:"5",q:"An airline charges more for a seat booked the day before vs. two months ahead. This is:",o:["Value-based pricing","Dynamic pricing / revenue management","Competition-based pricing","Cost-plus pricing"],a:1,e:"Dynamic/revenue management adjusts prices based on demand patterns and booking timing. Last-minute premiums are classic rate fence mechanisms."},
+  {m:"6",q:"Allstate's 'You're in good hands' is a strategy designed to:",o:["Promote a sales incentive","Use a tangible metaphor to overcome intangibility","Stimulate off-peak demand","Highlight pricing advantages"],a:1,e:"Services are intangible, so marketers use metaphors to communicate value. 'You're in good hands' makes an abstract benefit feel concrete and reassuring."},
+  {m:"6",q:"Which communication tool is considered the MOST CREDIBLE by consumers?",o:["Television advertising","Search engine advertising","Word of mouth from other customers","Direct mail campaigns"],a:2,e:"WOM = most credible because it comes from peers with no commercial interest, not from the firm itself."},
+  {m:"6",q:"Public Relations (PR) involves:",o:["Paying for advertising space","Using discounts to stimulate purchase","Stimulating positive interest through press releases and sponsorships","Direct one-to-one communication with prospects"],a:2,e:"PR = third-party coverage and earned media — press conferences, news releases, sponsorships. More credible than paid advertising."},
+  {m:"6",q:"The '5 Ws' framework in communications planning stands for:",o:["Who, What, How, Where, When","Who, Why, What, Which, When","Where, What, Why, Whom, Wins","When, Who, Which, What, Why"],a:0,e:"5 Ws: Who (audience), What (message/objective), How (channel), Where (location), When (timing). A planning checklist."},
+  {m:"6",q:"A firm has separate departments for advertising, PR, and social media each sending different messages. The risk is:",o:["Over-investment in too many channels","Lack of IMC leading to inconsistent brand identity","Too much customer feedback","Excessive below-the-line spending"],a:1,e:"IMC = all communications reinforce one consistent brand identity. Without IMC, different departments send conflicting messages."},
+  {m:"6",q:"Search engine advertising is called a 'reverse broadcast network' because:",o:["It broadcasts to all users simultaneously","Advertisers know what consumers want through keyword searches","Consumers must opt-in before seeing ads","The search engine creates the ad content"],a:1,e:"Unlike traditional advertising, search engine ads respond to what consumers are already searching for — targeting exact purchase intentions."},
+  {m:"6",q:"Which is a strategy to STIMULATE positive word of mouth?",o:["Reducing advertising spend","Offering referral incentive schemes and presenting testimonials","Limiting service availability","Increasing price to signal quality"],a:1,e:"WOM strategies: referral incentive schemes, testimonials, exciting promotions people talk about, encouraging satisfied customers to share."},
+  {m:"6",q:"Permission marketing aims to:",o:["Send as many messages as possible to maximize reach","Persuade customers to voluntarily invite communications","Use personal selling to convert leads","Place ads on third-party websites"],a:1,e:"Permission marketing asks customers to OPT IN before receiving communications — e.g., registering and specifying email preferences. Builds stronger relationships."},
+  {m:"7",q:"Service blueprinting is primarily used to:",o:["Set prices for each service component","Visually map the entire service delivery process including front and backstage","Train employees in customer scripts","Identify which competitors to benchmark against"],a:1,e:"A service blueprint visually maps all delivery steps, separated by the 'line of visibility' into front-stage (visible) and backstage (invisible) elements."},
+  {m:"7",q:"Which indicates that a service process NEEDS to be redesigned?",o:["High customer satisfaction scores","High ratio of checking/control to value-adding activities","Strong employee Moments of Truth performance","Effective use of SSTs"],a:1,e:"Warning signs: excessive checking activities, lots of exceptions, customer complaints about inconvenient procedures, high non-value-adding steps."},
+  {m:"7",q:"Customers as 'partial employees' in service delivery means:",o:["Firms should pay customers for their participation","Customers perform tasks and their competence directly affects outcomes","Customers are given access to backstage operations","Firms hire customers part-time during peak periods"],a:1,e:"In coproduction, customers perform tasks themselves. Their skill and effort directly affect quality — hence 'partial employees.'"},
+  {m:"7",q:"A customer finds an ATM out of service with no alternative provided. What does this indicate?",o:["The SST is working reliably","The SST lacks an adequate service recovery system","The SST has exceeded expectations","The firm is successfully shifting to digital channels"],a:1,e:"SST assessment question: 'If it fails, what recovery systems are in place?' No fallback = poor SST management."},
+  {m:"7",q:"Which is an ADVANTAGE of self-service technologies (SSTs)?",o:["Eliminates the need for service recovery planning","Provides social interaction valued by customers","Offers greater control, convenience, and flexibility to customers","Reduces the need for customer training"],a:2,e:"SST advantages: time savings, greater control, flexibility of timing and location, higher perceived customization, often lower prices."},
+  {m:"7",q:"Which sequence principle suggests negative experiences should come early in a service encounter?",o:["'Start strong' principle","'Get bad experiences over early' principle","'Finish strong' principle","'Create a peak' principle"],a:1,e:"Bad experiences early (customers forget/forgive) + positive experiences at end = strong final impression and better overall memory."},
+  {m:"7",q:"To reduce customer reluctance to adopt new SSTs, firms should:",o:["Force adoption by removing all human alternatives","Develop trust, pre-test systems, publicize benefits, and teach customers","Lower service prices exclusively through SST channels","Remove SSTs that generate any complaints"],a:1,e:"6-step process: develop trust → understand habits → pre-test → publicize benefits → teach and promote trial → monitor and improve."},
+];
+
+const MOD_FULL={"1":"Module 1 — Service Characteristics & Categorization","2":"Module 2 — Consumer Behavior & Service Encounters","3":"Module 3 — Segmentation, Targeting & Positioning","4":"Module 4 — Service Products & Branding","5":"Module 5 — Pricing Strategies","6":"Module 6 — Promotion & Communications","7":"Module 7 — Service Process & SSTs"};
+
+let answered={},correct=0,currentFilter='all';
+
+function render(filter){
+  currentFilter=filter;
+  const container=document.getElementById('quiz');
+  container.innerHTML='';
+  const list=filter==='all'?Q:Q.filter(q=>q.m===filter);
+  let lastMod=null;
+  list.forEach(q=>{
+    const gi=Q.indexOf(q);
+    const st=answered[gi];
+    if(q.m!==lastMod){
+      lastMod=q.m;
+      const ml=document.createElement('div');
+      ml.className='mod-label';
+      ml.textContent=MOD_FULL[q.m];
+      container.appendChild(ml);
+    }
+    const card=document.createElement('div');
+    card.className='card'+(st?(st.r==='c'?' correct':' wrong'):'');
+    card.id='c'+gi;
+    const optsHTML=q.o.map((opt,oi)=>{
+      const lbl=['A','B','C','D'][oi];
+      let cls='';
+      if(st){if(oi===q.a)cls=' correct';else if(st.r==='w'&&oi===st.ch)cls=' wrong';}
+      return `<button class="opt${cls}" onclick="pick(${gi},${oi})" ${st?'disabled':''}><span class="opt-lbl">${lbl}</span><span>${opt}</span></button>`;
+    }).join('');
+    card.innerHTML=`
+      <div class="q-header"><span class="q-num">Q${gi+1} · M${q.m}</span><span class="q-text">${q.q}</span></div>
+      <div class="options">${optsHTML}</div>
+      <div class="exp${st?' show':''}">💡 <strong>Explanation:</strong> ${q.e}</div>
+      ${st?`<div class="result ${st.r==='c'?'correct':'wrong'}">${st.r==='c'?'✅ Correct!':'❌ Incorrect — see explanation above'}</div>`:''}
+    `;
+    container.appendChild(card);
+  });
+  updateScore();
+}
+
+function pick(gi,oi){
+  if(answered[gi])return;
+  const isCorrect=oi===Q[gi].a;
+  answered[gi]={r:isCorrect?'c':'w',ch:oi};
+  if(isCorrect)correct++;
+  render(currentFilter);
+  setTimeout(()=>{const el=document.getElementById('c'+gi);if(el)el.scrollIntoView({behavior:'smooth',block:'nearest'});},80);
+}
+
+function updateScore(){
+  const total=Object.keys(answered).length;
+  document.getElementById('sc').textContent=correct;
+  document.getElementById('st').textContent=total;
+  const pct=total>0?correct/total:0;
+  document.getElementById('ring').style.strokeDashoffset=94.2-pct*94.2;
+  document.getElementById('ring').style.stroke=pct>=0.8?'#2dffaa':pct>=0.6?'#ffb347':'#ff4d6d';
+  document.getElementById('pct-lbl').textContent=total>0?Math.round(pct*100)+'% accuracy':'Start answering!';
+}
+
+function setFilter(f,btn){
+  document.querySelectorAll('.fbtn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render(f);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function showReset(){document.getElementById('modal').classList.add('show');}
+function hideReset(){document.getElementById('modal').classList.remove('show');}
+function bgClick(e){if(e.target===document.getElementById('modal'))hideReset();}
+function confirmReset(){
+  answered={};correct=0;
+  hideReset();
+  render(currentFilter);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+render('all');
+</script>
+</body>
+</html>
